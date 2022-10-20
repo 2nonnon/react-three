@@ -1,7 +1,6 @@
 import { useFrame, useLoader } from '@react-three/fiber'
 import { MMDLoader } from 'three/examples/jsm/loaders/MMDLoader'
 import { MMDAnimationHelper } from 'three/examples/jsm/animation/MMDAnimationHelper';
-import Stats from 'three/examples/jsm/libs/stats.module';
 import { useThree } from '@react-three/fiber'
 import { AnimationClip } from 'three';
 
@@ -29,16 +28,12 @@ function Ying() {
         scene.add(physicsHelper);
     });
 
-    const stats = Stats()
-    useFrame(({ gl, scene, camera }, delta) => {
-        stats.begin()
+    useFrame((_, delta) => {
         helper.update(delta);
-        gl.render(scene, camera)
-        stats.end()
     })
 
     return <>
-        <primitive position={[0, -10, 0]} object={mesh} />
+        <primitive castShadow receiveShadow position={[0, -10, 0]} object={mesh} />
     </>
 }
 

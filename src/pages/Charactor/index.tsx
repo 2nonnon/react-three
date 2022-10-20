@@ -1,43 +1,59 @@
 import { Canvas } from '@react-three/fiber'
 import Ying from '../../Models/mmd/ying'
-import { useThree } from '@react-three/fiber'
-import { useEffect } from 'react'
+import { Environment, MeshReflectorMaterial, OrbitControls, Stats } from '@react-three/drei'
+import { Suspense } from 'react'
 import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { WebGLRenderer } from 'three'
 
 function Init() {
-    const { camera, gl } = useThree((state) => ({ gl: state.gl, camera: state.camera }))
-
-    useEffect(() => {
-        const controls = new OrbitControls(camera, gl.domElement);
-        controls.minDistance = 10;
-        controls.maxDistance = 100;
-    })
-
     return <></>
 }
 
 function Charator() {
 
     return (
-        <div id='canvas__container' style={{ height: "100vh" }
-        }>
-            <Canvas camera={{ position: [0, 0, 30], fov: 45, far: 2000 }} gl={(canvas => {
+        <div id='canvas__container' style={{ height: "100vh" }}>
+            <Canvas dpr={[1, 1.5]} shadows camera={{ position: [0, 10, 40], fov: 35 }} gl={(canvas) => {
                 const renderer = new WebGLRenderer({ antialias: true, canvas, });
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 const effect = new OutlineEffect(renderer)
                 effect.enabled = true
-                return effect
-            })}>
+                const back = Object.assign({}, effect)
+
+                return Object.assign(Object.assign(back, renderer), effect)
+            }}>
                 <Init />
-                <polarGridHelper args={[30, 0]} position={[0, -10, 0]}></polarGridHelper>
-                <ambientLight color={'#fff'} intensity={0.1} />
-                <directionalLight color="#fff"
-                    intensity={1.1} position={[-3, 7, 6]} />
-                <Ying />
+                <fog attach="fog" args={['#17171b', 0, 100]} />
+                <color attach="background" args={['#17171b']} />
+                <ambientLight intensity={1} />
+                <directionalLight castShadow intensity={1.5} position={[10, 6, 6]} shadow-mapSize={[1024, 1024]}>
+                    <orthographicCamera attach="shadow-camera" left={-20} right={20} top={20} bottom={-20} />
+                </directionalLight>
+                <Suspense fallback={null}>
+                    <Ying />
+                    <mesh position={[0, -10.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                        <planeGeometry args={[5000, 5000]} />
+                        <MeshReflectorMaterial
+                            mirror={1}
+                            blur={[400, 100]}
+                            resolution={1024}
+                            mixBlur={1}
+                            mixStrength={15}
+                            depthScale={1}
+                            minDepthThreshold={0.85}
+                            color="#17171b"
+                            metalness={0.5}
+                            roughness={0.5}
+                            opacity={0.5}
+                            transparent
+                        />
+                    </mesh>
+                    <Environment preset="dawn" />
+                </Suspense>
+                <OrbitControls />
             </Canvas>
+            <Stats />
         </div >
     )
 }
